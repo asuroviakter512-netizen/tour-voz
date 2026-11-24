@@ -13,6 +13,8 @@ type Destination = {
   location?: string;
 };
 
+const API_URL = "https://tour-voz-server.onrender.com";
+
 export function SearchSection() {
   const router = useRouter();
 
@@ -22,15 +24,31 @@ export function SearchSection() {
   const [error, setError] = useState("");
 
   const [destinations, setDestinations] = useState<Destination[]>([]);
-  const [filteredDestinations, setFilteredDestinations] = useState<Destination[]>([]);
+  const [filteredDestinations, setFilteredDestinations] =
+    useState<Destination[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Get all destinations from backend
+  // Today's date: calculate after the page loads in the browser
+  const [today, setToday] = useState("");
+
+  useEffect(() => {
+    const date = new Date();
+
+    const formattedDate = [
+      date.getFullYear(),
+      String(date.getMonth() + 1).padStart(2, "0"),
+      String(date.getDate()).padStart(2, "0"),
+    ].join("-");
+
+    setToday(formattedDate);
+  }, []);
+
+  // Get destinations from backend
   useEffect(() => {
     const fetchDestinations = async () => {
       try {
-        const response = await fetch("http://localhost:8000/destinations");
+        const response = await fetch(`${API_URL}/destinations`);
 
         if (!response.ok) {
           throw new Error("Failed to load destinations");
@@ -52,14 +70,6 @@ export function SearchSection() {
     fetchDestinations();
   }, []);
 
-  // Today's date
-  const date = new Date();
-  const today = [
-    date.getFullYear(),
-    String(date.getMonth() + 1).padStart(2, "0"),
-    String(date.getDate()).padStart(2, "0"),
-  ].join("-");
-
   // Filter destinations
   const handleDestinationChange = (value: string) => {
     setDestination(value);
@@ -67,7 +77,10 @@ export function SearchSection() {
     setError("");
 
     const filtered = destinations.filter((item) => {
-      const fullName = `${item.name} ${item.country || ""} ${item.location || ""}`;
+      const fullName = `${item.name} ${item.country || ""} ${
+        item.location || ""
+      }`;
+
       return fullName.toLowerCase().includes(value.toLowerCase());
     });
 
@@ -95,12 +108,16 @@ export function SearchSection() {
       return;
     }
 
-    if (checkIn < today) {
+    if (today && checkIn < today) {
       setError("Please select today or a future date.");
       return;
     }
 
-    if (!travelers || Number(travelers) < 1 || Number(travelers) > 50) {
+    if (
+      !travelers ||
+      Number(travelers) < 1 ||
+      Number(travelers) > 50
+    ) {
       setError("Please enter between 1 and 50 travelers.");
       return;
     }
@@ -119,7 +136,6 @@ export function SearchSection() {
     <section className="relative z-30 -mt-16 px-5">
       <div className="mx-auto max-w-5xl rounded-2xl bg-white p-6 shadow-xl ring-1 ring-black/5">
         <div className="grid gap-4 md:grid-cols-4">
-
           {/* Destination */}
           <div className="relative flex flex-col gap-2">
             <label
@@ -137,23 +153,32 @@ export function SearchSection() {
               autoComplete="off"
               onFocus={() => {
                 setShowDropdown(true);
+
                 setFilteredDestinations(
                   destinations.filter((item) => {
-                    const fullName = `${item.name} ${item.country || ""} ${item.location || ""}`;
-                    return fullName.toLowerCase().includes(destination.toLowerCase());
+                    const fullName = `${item.name} ${
+                      item.country || ""
+                    } ${item.location || ""}`;
+
+                    return fullName
+                      .toLowerCase()
+                      .includes(destination.toLowerCase());
                   })
                 );
               }}
-              onChange={(e) => handleDestinationChange(e.target.value)}
+              onChange={(e) =>
+                handleDestinationChange(e.target.value)
+              }
               className="h-11 rounded-lg border-gray-200"
             />
 
             {/* Destination Dropdown */}
             {showDropdown && (
               <div className="absolute left-0 top-full z-50 mt-2 max-h-72 w-full overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 shadow-2xl">
-
                 <p className="px-3 py-2 text-xs font-bold uppercase tracking-wide text-gray-500">
-                  {destination ? "Matching Destinations" : "Popular Destinations"}
+                  {destination
+                    ? "Matching Destinations"
+                    : "Popular Destinations"}
                 </p>
 
                 {loading ? (
@@ -190,6 +215,7 @@ export function SearchSection() {
                         <span className="block text-sm font-semibold text-gray-800">
                           {item.name}
                         </span>
+
                         <span className="block text-xs text-gray-500">
                           {[item.location, item.country]
                             .filter(Boolean)
@@ -219,7 +245,7 @@ export function SearchSection() {
             <Input
               id="checkin"
               type="date"
-              min={today}
+              min={today || undefined}
               value={checkIn}
               onChange={(e) => setCheckIn(e.target.value)}
               className="h-11 rounded-lg border-gray-200"

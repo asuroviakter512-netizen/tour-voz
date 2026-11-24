@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -16,7 +16,9 @@ type Destination = {
   description: string;
 };
 
-export default function EditDestinationPage() {
+const API_URL = "https://tour-voz-server.onrender.com";
+
+function EditDestinationContent() {
   const params = useParams();
   const router = useRouter();
 
@@ -37,9 +39,7 @@ export default function EditDestinationPage() {
   useEffect(() => {
     async function fetchDestination() {
       try {
-        const res = await fetch(
-          `http://localhost:8000/destinations/${id}`
-        );
+        const res = await fetch(`${API_URL}/destinations/${id}`);
 
         if (!res.ok) {
           throw new Error("Destination not found");
@@ -54,7 +54,7 @@ export default function EditDestinationPage() {
         setDuration(data.duration || "");
         setImage(data.image || "");
         setDescription(data.description || "");
-      } catch (error) {
+      } catch {
         setMessage("Failed to load destination.");
       } finally {
         setLoading(false);
@@ -75,24 +75,21 @@ export default function EditDestinationPage() {
     setMessage("");
 
     try {
-      const res = await fetch(
-        `http://localhost:8000/destinations/${id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name,
-            country,
-            location,
-            price: Number(price),
-            duration,
-            image,
-            description,
-          }),
-        }
-      );
+      const res = await fetch(`${API_URL}/destinations/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          country,
+          location,
+          price: Number(price),
+          duration,
+          image,
+          description,
+        }),
+      });
 
       const data = await res.json();
 
@@ -121,7 +118,7 @@ export default function EditDestinationPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen flex items-center justify-center">
+      <main className="flex min-h-screen items-center justify-center">
         <p>Loading destination...</p>
       </main>
     );
@@ -130,7 +127,6 @@ export default function EditDestinationPage() {
   return (
     <main className="min-h-screen bg-gray-50 px-5 py-12">
       <div className="mx-auto max-w-3xl rounded-2xl bg-white p-6 shadow-lg sm:p-10">
-
         <Link
           href={`/destinations/${id}`}
           className="font-semibold text-orange-500"
@@ -256,5 +252,19 @@ export default function EditDestinationPage() {
         </form>
       </div>
     </main>
+  );
+}
+
+export default function EditDestinationPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="flex min-h-screen items-center justify-center">
+          <p>Loading edit page...</p>
+        </main>
+      }
+    >
+      <EditDestinationContent />
+    </Suspense>
   );
 }

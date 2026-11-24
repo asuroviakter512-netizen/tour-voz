@@ -1,9 +1,11 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
+
+const API_URL = "https://tour-voz-server.onrender.com";
 
 type Destination = {
   _id: string;
@@ -21,7 +23,7 @@ type LoggedInUser = {
   email: string;
 };
 
-export default function BookingPage() {
+function BookingContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -42,7 +44,6 @@ export default function BookingPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Get logged-in user
     const savedToken = localStorage.getItem("token");
     const savedUser = localStorage.getItem("user");
 
@@ -60,19 +61,15 @@ export default function BookingPage() {
       }
     }
 
-    // Load destination
     const destinationId = searchParams.get("destinationId");
     const destinationName = searchParams.get("destination");
 
     if (destinationId) {
-      fetch(
-        `http://localhost:8000/destinations/${destinationId}`
-      )
+      fetch(`${API_URL}/destinations/${destinationId}`)
         .then((res) => {
           if (!res.ok) {
             throw new Error("Destination not found");
           }
-
           return res.json();
         })
         .then((data) => {
@@ -134,27 +131,24 @@ export default function BookingPage() {
     setMessage("");
 
     try {
-      const res = await fetch(
-        "http://localhost:8000/bookings",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${savedToken}`,
-          },
-          body: JSON.stringify({
-            name: name || loggedInUser.name,
-            email: loggedInUser.email.trim().toLowerCase(),
-            phone,
-            people: Number(people),
-            date,
-            destinationId: destination?._id || "",
-            destinationName: destination?.name || "",
-            destinationPrice: destination?.price || 0,
-            destinationImage: destination?.image || "",
-          }),
-        }
-      );
+      const res = await fetch(`${API_URL}/bookings`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${savedToken}`,
+        },
+        body: JSON.stringify({
+          name: name || loggedInUser.name,
+          email: loggedInUser.email.trim().toLowerCase(),
+          phone,
+          people: Number(people),
+          date,
+          destinationId: destination?._id || "",
+          destinationName: destination?.name || "",
+          destinationPrice: destination?.price || 0,
+          destinationImage: destination?.image || "",
+        }),
+      });
 
       const data = await res.json();
 
@@ -162,9 +156,7 @@ export default function BookingPage() {
         throw new Error(data.message || "Booking failed");
       }
 
-      setMessage(
-        "Your booking has been submitted successfully!"
-      );
+      setMessage("Your booking has been submitted successfully!");
 
       setPhone("");
       setPeople("1");
@@ -184,7 +176,6 @@ export default function BookingPage() {
     <main className="min-h-screen bg-gray-50 px-5 py-16">
       <div className="mx-auto max-w-3xl">
         <div className="overflow-hidden rounded-3xl bg-white shadow-xl">
-
           <div className="bg-orange-500 px-8 py-10 text-white">
             <Link
               href="/destinations"
@@ -203,7 +194,6 @@ export default function BookingPage() {
           </div>
 
           <div className="p-6 sm:p-8">
-
             {destinationLoading && (
               <p className="mb-6 text-gray-500">
                 Loading destination...
@@ -258,15 +248,11 @@ export default function BookingPage() {
               </div>
             )}
 
-            <form
-              onSubmit={handleSubmit}
-              className="space-y-5"
-            >
+            <form onSubmit={handleSubmit} className="space-y-5">
               <div>
                 <label className="mb-2 block font-semibold text-gray-800">
                   Full Name
                 </label>
-
                 <input
                   required
                   value={name}
@@ -280,7 +266,6 @@ export default function BookingPage() {
                 <label className="mb-2 block font-semibold text-gray-800">
                   Email Address (Login Account)
                 </label>
-
                 <input
                   required
                   type="email"
@@ -289,7 +274,6 @@ export default function BookingPage() {
                   placeholder="Login to load your email"
                   className="w-full rounded-xl border border-gray-300 bg-gray-100 p-3 text-gray-700 outline-none"
                 />
-
                 <p className="mt-1 text-xs text-gray-500">
                   Your booking will be saved to this account.
                 </p>
@@ -299,7 +283,6 @@ export default function BookingPage() {
                 <label className="mb-2 block font-semibold text-gray-800">
                   Phone Number
                 </label>
-
                 <input
                   required
                   type="tel"
@@ -315,7 +298,6 @@ export default function BookingPage() {
                   <label className="mb-2 block font-semibold text-gray-800">
                     Number of Travelers
                   </label>
-
                   <input
                     required
                     type="number"
@@ -330,7 +312,6 @@ export default function BookingPage() {
                   <label className="mb-2 block font-semibold text-gray-800">
                     Travel Date
                   </label>
-
                   <input
                     required
                     type="date"
@@ -364,14 +345,26 @@ export default function BookingPage() {
                 disabled={loading || !token || !email}
                 className="w-full rounded-xl bg-orange-500 py-4 font-bold text-white shadow-md transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {loading
-                  ? "Submitting..."
-                  : "CONFIRM BOOKING →"}
+                {loading ? "Submitting..." : "CONFIRM BOOKING →"}
               </button>
             </form>
           </div>
         </div>
       </div>
     </main>
+  );
+}
+
+export default function BookingPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          Loading booking page...
+        </div>
+      }
+    >
+      <BookingContent />
+    </Suspense>
   );
 }

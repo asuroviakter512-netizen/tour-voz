@@ -1,16 +1,16 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 
-import { Footer } from "@/components/footer";
-import { Navbar } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+
+const API_URL = "https://tour-voz-server.onrender.com";
 
 type Destination = {
   _id: string;
@@ -24,7 +24,7 @@ type Destination = {
   description?: string;
 };
 
-export default function DestinationsPage() {
+function DestinationsContent() {
   const searchParams = useSearchParams();
 
   const [destinations, setDestinations] = useState<Destination[]>([]);
@@ -33,24 +33,21 @@ export default function DestinationsPage() {
   const [error, setError] = useState("");
   const [deletingId, setDeletingId] = useState("");
 
-  // Read search from URL
   useEffect(() => {
     const searchValue = searchParams.get("search") || "";
     setSearch(searchValue);
   }, [searchParams]);
 
-  // Fetch destinations
   useEffect(() => {
     async function getDestinations() {
       try {
-        const res = await fetch("http://localhost:8000/destinations");
+        const res = await fetch(`${API_URL}/destinations`);
 
         if (!res.ok) {
           throw new Error("Failed to fetch destinations");
         }
 
         const data: Destination[] = await res.json();
-
         setDestinations(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error(error);
@@ -63,7 +60,6 @@ export default function DestinationsPage() {
     getDestinations();
   }, []);
 
-  // Filter destinations
   const filteredDestinations = destinations.filter((destination) => {
     const name = destination.name || destination.destination || "";
     const location = destination.location || "";
@@ -74,7 +70,6 @@ export default function DestinationsPage() {
     return fullName.toLowerCase().includes(search.trim().toLowerCase());
   });
 
-  // Delete destination
   async function handleDelete(id: string) {
     const confirmDelete = window.confirm(
       "Are you sure you want to delete this destination?"
@@ -92,15 +87,12 @@ export default function DestinationsPage() {
     try {
       setDeletingId(id);
 
-      const res = await fetch(
-        `http://localhost:8000/destinations/${id}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const res = await fetch(`${API_URL}/destinations/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       const data = await res.json();
 
@@ -127,10 +119,7 @@ export default function DestinationsPage() {
 
   return (
     <main className="min-h-screen bg-background">
-      <Navbar />
-
       <section className="mx-auto max-w-7xl px-6 py-16">
-        {/* Heading and Search */}
         <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-gray-900">
@@ -173,7 +162,9 @@ export default function DestinationsPage() {
                 window.history.replaceState(
                   null,
                   "",
-                  `/destinations${params.toString() ? `?${params.toString()}` : ""}`
+                  `/destinations${
+                    params.toString() ? `?${params.toString()}` : ""
+                  }`
                 );
               }}
             >
@@ -182,21 +173,16 @@ export default function DestinationsPage() {
           </div>
         </div>
 
-        {/* Loading */}
         {loading && (
           <p className="py-10 text-center text-gray-600">
             Loading destinations...
           </p>
         )}
 
-        {/* Error */}
         {error && (
-          <p className="py-10 text-center text-red-500">
-            {error}
-          </p>
+          <p className="py-10 text-center text-red-500">{error}</p>
         )}
 
-        {/* No Results */}
         {!loading && !error && filteredDestinations.length === 0 && (
           <div className="py-16 text-center">
             <h2 className="text-xl font-bold text-gray-800">
@@ -219,7 +205,6 @@ export default function DestinationsPage() {
           </div>
         )}
 
-        {/* Destination Cards */}
         {!loading && !error && filteredDestinations.length > 0 && (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {filteredDestinations.map((destination) => {
@@ -233,7 +218,6 @@ export default function DestinationsPage() {
                   key={destination._id}
                   className="overflow-hidden transition hover:-translate-y-1 hover:shadow-lg"
                 >
-                  {/* Image */}
                   <div className="relative aspect-[4/3] overflow-hidden">
                     <Image
                       src={
@@ -273,8 +257,7 @@ export default function DestinationsPage() {
                         </p>
 
                         <p className="mt-1 text-xs text-gray-500">
-                          {destination.duration ||
-                            "Duration unavailable"}
+                          {destination.duration || "Duration unavailable"}
                         </p>
                       </div>
 
@@ -285,7 +268,6 @@ export default function DestinationsPage() {
                       </Link>
                     </div>
 
-                    {/* Admin Actions */}
                     <div className="mt-4 flex flex-wrap gap-2">
                       <Link
                         href={`/edit-destination/${destination._id}`}
@@ -313,7 +295,6 @@ export default function DestinationsPage() {
                       </Button>
                     </div>
 
-                    {/* Booking */}
                     <Link
                       href={`/booking?destination=${encodeURIComponent(destinationName)}`}
                       className="mt-4 block text-center text-sm font-bold text-sky-600 transition hover:text-sky-800"
@@ -327,8 +308,20 @@ export default function DestinationsPage() {
           </div>
         )}
       </section>
-
-      <Footer />
     </main>
+  );
+}
+
+export default function DestinationsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          Loading destinations...
+        </div>
+      }
+    >
+      <DestinationsContent />
+    </Suspense>
   );
 }

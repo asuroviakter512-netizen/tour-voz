@@ -1,6 +1,7 @@
 
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/navbar";
@@ -18,7 +19,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Tour-Voz | Explore the World",
-  description: "Discover beautiful destinations and book your next travel adventure with Tour-Voz.",
+  description:
+    "Discover beautiful destinations and book your next travel adventure with Tour-Voz.",
 };
 
 export default function RootLayout({
@@ -32,8 +34,12 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <Navbar />
+        <Suspense fallback={null}>
+          <Navbar />
+        </Suspense>
+
         {children}
+
         <Footer />
       </body>
     </html>

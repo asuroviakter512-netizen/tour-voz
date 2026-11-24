@@ -20,7 +20,7 @@ type Destination = {
   name: string;
 };
 
-const API = "http://localhost:8000";
+const API = "http://https://tour-voz-server.onrender.com";
 
 export default function AdminDashboard() {
   const [bookings, setBookings] = useState<Booking[]>([]);
