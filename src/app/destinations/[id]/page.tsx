@@ -25,7 +25,7 @@ async function DestinationDetails({ params }: PageProps) {
 
   try {
     const res = await fetch(
-      `http://https://tour-voz-server.onrender.com/destinations/${id}`,
+      `https://tour-voz-server.onrender.com/destinations/${id}`,
       { cache: "no-store" }
     );
 

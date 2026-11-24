@@ -23,7 +23,7 @@ export default function ToursPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("http://https://tour-voz-server.onrender.com/destinations")
+    fetch("https://tour-voz-server.onrender.com/destinations")
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch tours");
         return res.json();

@@ -34,7 +34,7 @@ function BookingDetailsContent() {
     async function getBooking() {
       try {
         const res = await fetch(
-          "http://https://tour-voz-server.onrender.com/all-bookings"
+          "https://tour-voz-server.onrender.com/all-bookings"
         );
 
         if (!res.ok) {

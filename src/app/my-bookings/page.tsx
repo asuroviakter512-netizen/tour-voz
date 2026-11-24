@@ -41,7 +41,7 @@ export default function MyBookingsPage() {
       }
 
       const res = await fetch(
-        "http://https://tour-voz-server.onrender.com/my-bookings",
+        "https://tour-voz-server.onrender.com/my-bookings",
         {
           method: "GET",
           headers: {

@@ -82,7 +82,7 @@ export default function AddDestinationPage() {
       }
 
       const response = await fetch(
-        "http://https://tour-voz-server.onrender.com/add-destination",
+        "https://tour-voz-server.onrender.com/add-destination",
         {
           method: "POST",
           headers: {

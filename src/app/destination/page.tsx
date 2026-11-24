@@ -32,7 +32,7 @@ export default function DestinationPage() {
   useEffect(() => {
     async function fetchDestinations() {
       try {
-        const res = await fetch("http://https://tour-voz-server.onrender.com/destinations");
+        const res = await fetch("https://tour-voz-server.onrender.com/destinations");
 
         if (!res.ok) {
           throw new Error("Failed to fetch destinations");

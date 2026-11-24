@@ -23,7 +23,7 @@ export default function LoginPage() {
 
     try {
       const response = await fetch(
-        "http://https://tour-voz-server.onrender.com/auth/login",
+        "https://tour-voz-server.onrender.com/auth/login",
         {
           method: "POST",
           headers: {

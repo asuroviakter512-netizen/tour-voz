@@ -24,7 +24,7 @@ export function PopularDestinations() {
     async function fetchDestinations() {
       try {
         const response = await fetch(
-          "http://https://tour-voz-server.onrender.com/destinations"
+          "https://tour-voz-server.onrender.com/destinations"
         );
 
         if (!response.ok) {
